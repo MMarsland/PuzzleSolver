@@ -89,8 +89,9 @@
       let boardsTried = 0;
       let solutions = [];
 
-      function main() {
+      async function main() {
         log("Starting Solver");
+        await sleep(200);
         let pieces = [];
         for (key in maps) {
           pieces.push(new Piece(key, maps[key], 0));
@@ -238,10 +239,13 @@
         container.innerHTML = htmlString; 
         document.body.appendChild(container);
       }
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
     </script>
   </head>
   <body onload="main()">
-    <h1 id="loading">Loading Solutions...</h1>
-    <ol id="log"></ol>
+    <h1 id="loading">Loading Solutions...\nPlease Wait.</h1>
+    <ol style="list-style: none" id="log"></ol>
   </body>
 </html>
