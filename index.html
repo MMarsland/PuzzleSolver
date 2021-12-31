@@ -8,7 +8,6 @@
           flex-direction: row;
           height: 320px;
           width: 700px;
-          margin-bottom:50px;
           box-sizing: border-box;
           padding: 2.5px 5px 2.5px 5px;
         }
@@ -16,7 +15,7 @@
           display: flex;
           height: 100px;
           position: relative;
-          width: 305px;    
+          width: 305px;
           border: 1px solid black;
           box-sizing: border-box;
           margin: 2.5px;
@@ -44,6 +43,8 @@
           height: 310px;
           width: 310px;
           box-sizing: border-box;
+        }
+        .text {
         }
     </style>
     <script>
@@ -88,31 +89,40 @@
       var DESIRED_COUNT = 9;
       let boardsTried = 0;
       let solutions = [];
+      loadingState = 3;
 
       async function main() {
-        await sleep(200);
+
+        // Allow DOM to load before processing
+        await sleep(50);
+
         let pieces = [];
         for (key in maps) {
           pieces.push(new Piece(key, maps[key], 0));
         }
-        
+        let count = 0;
         for (let arrangement of getArrangements(pieces)) {
+            count++;
+            if (count == 200000) {
+                count = 0;
+                await updateLoading();
+            }
           if (testBoard(arrangement)) {
               solutions.push(arrangement);
           }
         }
-        log("Total Boards Tested: "+boardsTried);
-        log("Solutions Found: "+solutions.length);
+
+        document.getElementById("loading").innerHTML = "Solutions Found";
+        describeResults();
         for(let key in solutions) {
-          log(`Solution ${parseInt(key)+1}:`);
-          log(describePieces(solutions[key]));
+          describeSolution(solutions[key], key)
           drawSolution(solutions[key]);
         }
-        log("Done");
       }
 
       function getArrangements(pieces) {
         let arrangements = [];
+        let count = 0;
         for (let permutation of getPermutations(pieces)) {
           for (let orientation of getOrientations(permutation)) {
             arrangements.push(orientation);
@@ -125,10 +135,10 @@
         return perm(array);
         function perm(xs) {
           let ret = [];
-        
+
           for (let i = 0; i < xs.length; i = i + 1) {
             let rest = perm(xs.slice(0, i).concat(xs.slice(i + 1)));
-        
+
             if(!rest.length) {
               ret.push([xs[i]])
             } else {
@@ -147,7 +157,7 @@
           for (let b=0;b<4;b++) {
             for (let c=0;c<4;c++) {
               for (let d=0;d<4;d++) {
-                for (let e=0;e<4;e++) { 
+                for (let e=0;e<4;e++) {
                   for (let f=0;f<4;f++) {
                     orientations.push([pieces[0].getNewOrientation(a),
                                       pieces[1].getNewOrientation(b),
@@ -166,7 +176,7 @@
 
       function testBoard(pieces) {
         boardsTried++;
-        
+
         let board = [];
         let topBoard = [];
 
@@ -192,21 +202,26 @@
         }
         if (count == DESIRED_COUNT) {
           return true;
-        } 
+        }
         return false;
       }
 
-      function describePieces(pieces) {
-        let description = "";
-        for (let key in pieces) {
-          description += "Location "+(parseInt(key)+1)+": Piece Number "+(parseInt(pieces[key].pieceNum)+1)+", Orientation: "+(pieces[key].orientation+1)+"<br>";
-        }
-        return description;
+      function describeResults() {
+        let container = document.createElement('pre');
+        container.classList.add("text");
+        container.innerHTML = "Total Boards Tested: "+boardsTried+"<br>Solutions Found: "+solutions.length;
+        document.body.appendChild(container);
       }
 
-      function log(text) {
-        document.getElementById("log").innerHTML += `<li>${text}</li>`;
-        console.log(text);
+      function describeSolution(pieces, key) {
+        let container = document.createElement('pre');
+        container.classList.add("text");
+        let description = `<strong>SOLUTION ${parseInt(key)+1}:</strong><br>`;
+        for (let key in pieces) {
+          description += "  Location "+(parseInt(key)+1)+":<br>    Piece Number "+(parseInt(pieces[key].pieceNum)+1)+", Orientation: "+(pieces[key].orientation+1)+"<br>";
+        }
+        container.innerHTML = description;
+        document.body.appendChild(container);
       }
 
       function drawSolution(pieces) {
@@ -235,16 +250,30 @@
         htmlString += `
           <div class="bottom">${htmlBottom}</div>
           <div class="top">${htmlTop}</div>`;
-        container.innerHTML = htmlString; 
+        container.innerHTML = htmlString;
         document.body.appendChild(container);
       }
+
+      function log(text) {
+        document.getElementById("log").innerHTML += `<li>${text}</li>`;
+        console.log(text);
+      }
+
       function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
       }
+
+      async function updateLoading() {
+          loadingState = (loadingState + 1) % 4;
+          dots = (loadingState == 0 ? "." : (loadingState == 1 ? ".." : (loadingState == 2 ? "..." : "")));
+          document.getElementById("loading").innerHTML = "Loading Solutions"+dots;
+          return await sleep(20);
+      }
+
     </script>
   </head>
   <body onload="main()">
-    <h1 id="loading">Loading Solutions...<br/>Please Wait.</h1>
+    <h1 id="loading">Loading Solutions</h1>
     <ol style="list-style: none" id="log"></ol>
   </body>
 </html>
