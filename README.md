@@ -5,4 +5,4 @@ A brute force algorithm to solve a simple permutation puzzle at my grandparent's
 
 Enjoy!  
 
-![alt text](PuzzleSolverDemo.PNG "Example of the Puzzle Solver")
+![alt text](PuzzleSolverDemo.gif "Example of the Puzzle Solver")
